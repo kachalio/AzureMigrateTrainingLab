@@ -4,14 +4,6 @@
 #######################################
 # Variables
 
-variable "abrs_engineer" {
-  description = "list of engineers"
-  type = map(object({
-    alias     = string
-    datastore = string
-  }))
-}
-
 
 #######################################
 # VCenter variables
@@ -24,7 +16,7 @@ variable "vsphere_user" {
 variable "vsphere_password" {
   description = "vSphere password"
   type        = string
-  sensitive = true
+  sensitive   = true
 }
 
 variable "vsphere_server" {
@@ -98,7 +90,7 @@ variable "linuxvm_disk" {
   default     = 100
 }
 
-variable "linuxvm_name" {
+variable "linuxvm_name_prefix" {
   type        = string
   description = "The name of the vSphere virtual machines and the hostname of the machine"
   default     = "VM"
@@ -123,7 +115,7 @@ variable "linuxvm_template_name" {
 #WINDOWS
 variable "winvm_count" {
   description = "Number of VM"
-  default     = 1
+  default     = 2
 }
 
 variable "winvm_cpu" {
@@ -144,7 +136,7 @@ variable "winvm_disk" {
   default     = 100
 }
 
-variable "winvm_name" {
+variable "winvm_name_prefix" {
   type        = string
   description = "The name of the vSphere virtual machines and the hostname of the machine"
   default     = "VM"
@@ -160,42 +152,3 @@ variable "winvm_template_name" {
   description = "The template to clone to create the VM"
 }
 
-#WINDOWS APP
-variable "winappvm_count" {
-  description = "Number of VM"
-  default     = 1
-}
-
-variable "winappvm_cpu" {
-  type        = string
-  description = "Number of vCPU for the vSphere virtual machines"
-  default     = "2"
-}
-
-variable "winappvm_ram" {
-  type        = string
-  description = "Amount of RAM for the vSphere virtual machines (example: 2048)"
-  default     = "2048"
-}
-
-variable "winappvm_disk" {
-  description = "Size of Disk, should be at least the size of the template disk"
-  type        = number
-  default     = 100
-}
-
-variable "winappvm_name" {
-  type        = string
-  description = "The name of the vSphere virtual machines and the hostname of the machine"
-  default     = "VM"
-}
-
-variable "winappvm_guest_id" {
-  type        = string
-  description = "The ID of virtual machines operating system"
-}
-
-variable "winappvm_template_name" {
-  type        = string
-  description = "The template to clone to create the VM"
-}

@@ -20,8 +20,7 @@ data "vsphere_compute_cluster" "cluster" {
 
 # VM
 data "vsphere_datastore" "ds" {
-  for_each      = var.abrs_engineer
-  name          = each.value.datastore #var.vm_datastore
+  name          = var.vm_datastore
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
@@ -40,21 +39,15 @@ data "vsphere_virtual_machine" "wintemplate" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
-data "vsphere_virtual_machine" "winapptemplate" {
-  name          = "/${var.vsphere_datacenter}/vm/${var.vsphere_template_folder}/${var.winappvm_template_name}"
-  datacenter_id = data.vsphere_datacenter.dc.id
-}
-
 # Create VMs
 
 #linux
 resource "vsphere_virtual_machine" "linuxvm" {
-  for_each = var.abrs_engineer
-  #count = var.linuxvm_count
+  count = var.linuxvm_count
 
-  name             = "${each.value.alias}-${var.linuxvm_name}-1" //-${count.index + 1}"
+  name             = "${var.linuxvm_name_prefix}-${count.index + 1}"
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.ds[each.key].id
+  datastore_id     = data.vsphere_datastore.ds.id
   folder           = var.vm_folder
   num_cpus         = var.linuxvm_cpu
   memory           = var.linuxvm_ram
@@ -68,7 +61,7 @@ resource "vsphere_virtual_machine" "linuxvm" {
   }
 
   disk {
-    label            = "${each.value.alias}-${var.linuxvm_name}-disk" //${count.index + 1}-disk"
+    label            = "${var.linuxvm_name_prefix}-${count.index + 1}-disk"
     size             = data.vsphere_virtual_machine.linuxtemplate.disks[0].size
     thin_provisioned = data.vsphere_virtual_machine.linuxtemplate.disks[0].thin_provisioned
 
@@ -78,53 +71,11 @@ resource "vsphere_virtual_machine" "linuxvm" {
   clone {
     template_uuid = data.vsphere_virtual_machine.linuxtemplate.id
     customize {
-      linux_options {
-        host_name = "${each.value.alias}-${var.linuxvm_name}" //-${count.index + 1}"
-        domain    = var.linuxvm_domain
-        time_zone = "America/New_York"
-      }
-      network_interface {}
-      timeout = 30
-    }
-  }
-}
-
-#linux
-resource "vsphere_virtual_machine" "linuxvm2" {
-  for_each = var.abrs_engineer
-  #count = var.linuxvm_count
-
-  name             = "${each.value.alias}-${var.linuxvm_name}-2" //-${count.index + 1}"
-  resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.ds[each.key].id
-  folder           = var.vm_folder
-  num_cpus         = var.linuxvm_cpu
-  memory           = var.linuxvm_ram
-  guest_id         = data.vsphere_virtual_machine.linuxtemplate.guest_id
-  firmware         = data.vsphere_virtual_machine.linuxtemplate.firmware
-  scsi_type        = data.vsphere_virtual_machine.linuxtemplate.scsi_type
-
-  network_interface {
-    network_id   = data.vsphere_network.network.id
-    adapter_type = data.vsphere_virtual_machine.linuxtemplate.network_interface_types[0]
-  }
-
-  disk {
-    label            = "${each.value.alias}-${var.linuxvm_name}-2-disk" //${count.index + 1}-disk"
-    size             = data.vsphere_virtual_machine.linuxtemplate.disks[0].size
-    thin_provisioned = data.vsphere_virtual_machine.linuxtemplate.disks[0].thin_provisioned
-
-    unit_number = data.vsphere_virtual_machine.linuxtemplate.disks[0].unit_number
-  }
-
-  clone {
-    template_uuid = data.vsphere_virtual_machine.linuxtemplate.id
-    customize {
-      linux_options {
-        host_name = "${each.value.alias}-${var.linuxvm_name}" //-${count.index + 1}"
-        domain    = var.linuxvm_domain
-        time_zone = "America/New_York"
-      }
+      # linux_options {
+      #   host_name = "${each.value.alias}-${var.linuxvm_name}" //-${count.index + 1}"
+      #   domain    = var.linuxvm_domain
+      #   time_zone = "America/New_York"
+      # }
       network_interface {}
       timeout = 30
     }
@@ -132,12 +83,11 @@ resource "vsphere_virtual_machine" "linuxvm2" {
 }
 
 resource "vsphere_virtual_machine" "winvm" {
-  for_each = var.abrs_engineer
-  # count = var.winvm_count
+  count = var.winvm_count
 
-  name             = "${each.value.alias}-${var.winvm_name}" //-${count.index + 1}"
+  name             = "${var.winvm_name_prefix}-${count.index + 1}"
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.ds[each.key].id
+  datastore_id     = data.vsphere_datastore.ds.id
   folder           = var.vm_folder
   num_cpus         = var.winvm_cpu
   memory           = var.winvm_ram
@@ -151,7 +101,7 @@ resource "vsphere_virtual_machine" "winvm" {
   }
 
   disk {
-    label            = "${each.value.alias}-${var.winvm_name}-disk" //-${count.index + 1}-disk"
+    label            = "${var.winvm_name_prefix}-${count.index + 1}-disk"
     size             = data.vsphere_virtual_machine.wintemplate.disks[0].size
     thin_provisioned = data.vsphere_virtual_machine.wintemplate.disks[0].thin_provisioned
 
@@ -161,102 +111,14 @@ resource "vsphere_virtual_machine" "winvm" {
   clone {
     template_uuid = data.vsphere_virtual_machine.wintemplate.id
     customize {
-      windows_options {
-        computer_name = "${each.value.alias}-${var.winvm_name}"
-        run_once_command_list = [
-          "cmd.exe /c net user Administrator /logonpasswordchg:yes",
-          "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
-          "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
-        ]
-      }
-      network_interface {}
-      timeout = 120
-    }
-  }
-}
-
-resource "vsphere_virtual_machine" "winappvm" {
-  for_each = var.abrs_engineer
-  # count = var.winappvm_count
-
-  name             = "${each.value.alias}-${var.winappvm_name}" //-${count.index + 1}"
-  resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.ds[each.key].id
-  folder           = var.vm_folder
-  num_cpus         = var.winappvm_cpu
-  memory           = var.winappvm_ram
-  guest_id         = data.vsphere_virtual_machine.winapptemplate.guest_id
-  firmware         = data.vsphere_virtual_machine.winapptemplate.firmware
-  scsi_type        = data.vsphere_virtual_machine.winapptemplate.scsi_type
-
-  network_interface {
-    network_id   = data.vsphere_network.network.id
-    adapter_type = data.vsphere_virtual_machine.winapptemplate.network_interface_types[0]
-  }
-
-  disk {
-    label            = "${each.value.alias}-${var.winappvm_name}-disk" //-${count.index + 1}-disk"
-    size             = data.vsphere_virtual_machine.winapptemplate.disks[0].size
-    thin_provisioned = data.vsphere_virtual_machine.winapptemplate.disks[0].thin_provisioned
-
-    unit_number = data.vsphere_virtual_machine.winapptemplate.disks[0].unit_number
-  }
-
-  clone {
-    template_uuid = data.vsphere_virtual_machine.winapptemplate.id
-    customize {
-      windows_options {
-        computer_name = "${each.value.alias}-${var.winappvm_name}" //-${count.index + 1}"
-        run_once_command_list = [
-          "cmd.exe /c net user Administrator /logonpasswordchg:yes",
-          "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
-          "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
-        ]
-      }
-      network_interface {}
-      timeout = 120
-    }
-  }
-}
-
-resource "vsphere_virtual_machine" "pwinappvm" {
-  for_each = var.abrs_engineer
-  # count = var.winappvm_count
-
-  name             = "${each.value.alias}-P${var.winappvm_name}" //-${count.index + 1}"
-  resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.ds[each.key].id
-  folder           = var.vm_folder
-  num_cpus         = var.winappvm_cpu
-  memory           = var.winappvm_ram
-  guest_id         = data.vsphere_virtual_machine.winapptemplate.guest_id
-  firmware         = data.vsphere_virtual_machine.winapptemplate.firmware
-  scsi_type        = data.vsphere_virtual_machine.winapptemplate.scsi_type
-
-  network_interface {
-    network_id   = data.vsphere_network.network.id
-    adapter_type = data.vsphere_virtual_machine.winapptemplate.network_interface_types[0]
-  }
-
-  disk {
-    label            = "${each.value.alias}-${var.winappvm_name}-disk" //-${count.index + 1}-disk"
-    size             = data.vsphere_virtual_machine.winapptemplate.disks[0].size
-    thin_provisioned = data.vsphere_virtual_machine.winapptemplate.disks[0].thin_provisioned
-
-    unit_number = data.vsphere_virtual_machine.winapptemplate.disks[0].unit_number
-  }
-
-  clone {
-    template_uuid = data.vsphere_virtual_machine.winapptemplate.id
-    customize {
-      windows_options {
-        computer_name = "${each.value.alias}-${var.winappvm_name}" //-${count.index + 1}"
-        run_once_command_list = [
-          "cmd.exe /c net user Administrator /logonpasswordchg:yes",
-          "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
-          "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
-        ]
-      }
+      # windows_options {
+      #   computer_name = "${this.name}"
+      #   run_once_command_list = [
+      #     "cmd.exe /c net user Administrator /logonpasswordchg:yes",
+      #     "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
+      #     "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
+      #   ]
+      # }
       network_interface {}
       timeout = 120
     }

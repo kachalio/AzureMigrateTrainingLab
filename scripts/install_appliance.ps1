@@ -64,15 +64,21 @@ $presetText | ConvertTo-Json | Out-File "$installerDirectory\preset.json"
 
 Write-Host "Preset file created: '$installerDirectory\preset.json'"
 
-
+###########################################################################
+### Uninstall any existing appliance
+###########################################################################
+# powershell -ExecutionPolicy Bypass -File "$installerDirectory\$installerScript" -RemoveAzMigrate
 
 ###########################################################################
 ### Install the Appliance
 ###########################################################################
 
+# This just runs the installer.  With the preset.json file in place, it'll use those parameters to install.
 Write-Host "Starting Appliance Installation"
 "Y" | powershell "$installerDirectory\$installerScript" # Only need 1 "Y" added to input if Edge is already installed otherwise all this gonna break probably
 
+# I can't figure out how to not get prompted for the Primary or scaleout out.  I'll leave this here in case I return to it. 
+# "Y" | powershell -ExecutionPolicy Bypass -File "$installerDirectory\$installerScript" -Scenario "VMware" -Cloud "Public"
 
 
 ###########################################################################

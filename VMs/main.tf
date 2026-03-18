@@ -70,15 +70,15 @@ resource "vsphere_virtual_machine" "linuxvm" {
 
   clone {
     template_uuid = data.vsphere_virtual_machine.linuxtemplate.id
-    customize {
-      # linux_options {
-      #   host_name = "${each.value.alias}-${var.linuxvm_name}" //-${count.index + 1}"
-      #   domain    = var.linuxvm_domain
-      #   time_zone = "America/New_York"
-      # }
-      network_interface {}
-      timeout = 30
-    }
+    # customize {
+    #   linux_options {
+    #   #   host_name = "${each.value.alias}-${var.linuxvm_name}" //-${count.index + 1}"
+    #   #   domain    = var.linuxvm_domain
+    #   #   time_zone = "America/New_York"
+    #   }
+    #   network_interface {}
+    #   timeout = 30
+    # }
   }
 }
 
@@ -110,17 +110,17 @@ resource "vsphere_virtual_machine" "winvm" {
 
   clone {
     template_uuid = data.vsphere_virtual_machine.wintemplate.id
-    customize {
-      # windows_options {
-      #   computer_name = "${this.name}"
-      #   run_once_command_list = [
-      #     "cmd.exe /c net user Administrator /logonpasswordchg:yes",
-      #     "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
-      #     "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
-      #   ]
-      # }
-      network_interface {}
-      timeout = 120
-    }
+    # customize {
+    # windows_options {
+    #   computer_name = "${this.name}"
+    #   run_once_command_list = [
+    #     "cmd.exe /c net user Administrator /logonpasswordchg:yes",
+    #     "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
+    #     "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
+    #   ]
+    # }
+    #   network_interface {}
+    #   timeout = 120
+    # }
   }
 }

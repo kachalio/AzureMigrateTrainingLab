@@ -1,0 +1,38 @@
+---
+- name: Windows VM maintenance playbook
+  hosts: windows
+  gather_facts: yes
+  tasks:
+    - name: Test WinRM connectivity
+      win_ping:
+
+    - name: Ensure chocolatey is installed
+      win_chocolatey:
+        name: chocolatey
+        state: present
+      register: choco
+
+    - name: Install latest 7zip (example package)
+      win_chocolatey:
+        name: 7zip
+        state: latest
+      when: choco.changed or true
+
+    - name: Create C:\\temp directory
+      win_file:
+        path: C:\\temp
+        state: directory
+
+    - name: Deploy a basic PowerShell script
+      win_copy:
+        dest: C:\\temp\\hello.ps1
+        content: |
+          Write-Host "Hello from Ansible on $(hostname)"
+
+    - name: Run hello script
+      win_shell: C:\\temp\\hello.ps1
+      register: run_hello
+
+    - name: Print script output
+      debug:
+        var: run_hello.stdout

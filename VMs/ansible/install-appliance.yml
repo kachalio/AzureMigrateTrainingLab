@@ -1,0 +1,55 @@
+---
+- name: Migrate Appliance Deployment
+  hosts: windows
+  gather_facts: yes
+  tasks:
+    - name: Test WinRM connectivity
+      win_ping:
+
+    # - name: Ensure chocolatey is installed
+    #   win_chocolatey:
+    #     name: chocolatey
+    #     state: present
+    #   register: choco
+
+    # - name: Install latest 7zip (example package)
+    #   win_chocolatey:
+    #     name: 7zip
+    #     state: latest
+    #   when: choco.changed or true
+
+    - name: Create C:\\temp directory
+      win_file:
+        path: C:\\temp
+        state: directory
+
+    - name: Download the installer package
+      win_get_url:
+        url: https://go.microsoft.com/fwlink/?linkid=2191847
+        dest: C:\\temp\\AzureMigrateInstaller.zip
+
+    - name: Extract the installer package
+      win_unzip:
+        src: C:\\temp\\AzureMigrateInstaller.zip
+        dest: C:\\temp\\AzureMigrateInstaller
+      
+    - name: Create the preset.json file
+      win_copy:
+        dest: C:\\temp\\AzureMigrateInstaller\\preset.json
+        content: |
+          {
+            "Scenario": "VMware",
+            "Cloud": "Public",
+            "ScaleOut": "false",
+            "PrivateEndpoint": "false",
+            "AzureStackHCITarget": "false"
+          }
+
+    - name: Run installer script
+      win_shell: C:\\temp\\AzureMigrateInstaller\\install_appliance.ps1
+      register: run_appliance_install
+      timeout: 900   # Set a timeout of 15 minutes for the installation process
+
+    - name: Print script output
+      debug:
+        var: run_appliance_install.stdout

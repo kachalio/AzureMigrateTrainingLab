@@ -126,7 +126,9 @@ resource "vsphere_virtual_machine" "winvm" {
       computer_name = "WIN${random_string.vm_suffix.result}${count.index + 1}"
       admin_password = var.winvm_admin_password
       run_once_command_list = [
-        "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
+        "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\"",
+        "cmd.exe /c powershell -Command \"Enable-PsRemoting\"",
+        "cmd.exe /c powershell -Command \"winrm qc\"",
       ]
     }
       network_interface {}

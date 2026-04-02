@@ -46,7 +46,7 @@
           }
 
     - name: Run installer script
-      win_shell: C:\\temp\\AzureMigrateInstaller\\install_appliance.ps1
+      win_shell: C:\\temp\\AzureMigrateInstaller\\AzureMigrateInstaller.ps1 
       register: run_appliance_install
       timeout: 900   # Set a timeout of 15 minutes for the installation process
 

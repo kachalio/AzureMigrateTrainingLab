@@ -44,9 +44,13 @@
             "PrivateEndpoint": "false",
             "AzureStackHCITarget": "false"
           }
+    
+    - name: Edit the installer script to make it work in a non-interactive way
+      win_shell: |
+        (Get-Content C:\\temp\\AzureMigrateInstaller\\AzureMigrateInstaller.ps1).replace('$userChoice = Read-Host','$userChoice = "Y"') | Set-Content C:\\temp\\AzureMigrateInstaller\\AzureMigrateInstaller.ps1
 
     - name: Run installer script
-      win_shell: C:\\temp\\AzureMigrateInstaller\\AzureMigrateInstaller.ps1 
+      win_shell: C:\\temp\\AzureMigrateInstaller\\.\AzureMigrateInstaller.ps1 # -Scenario VMware -Cloud Public # You could use this instead of the preset above.  It's a little flaky for me though.
       register: run_appliance_install
       timeout: 900   # Set a timeout of 15 minutes for the installation process
 

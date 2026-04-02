@@ -39,6 +39,17 @@ data "vsphere_virtual_machine" "wintemplate" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
+# Random string for unique VM names
+
+resource "random_string" "vm_suffix" {
+  length  = 6
+  upper   = true
+  lower   = false
+  numeric = true
+  special = false
+}
+
+
 # Create VMs
 
 #linux
@@ -110,17 +121,16 @@ resource "vsphere_virtual_machine" "winvm" {
 
   clone {
     template_uuid = data.vsphere_virtual_machine.wintemplate.id
-    # customize {
-    # windows_options {
-    #   computer_name = "${this.name}"
-    #   run_once_command_list = [
-    #     "cmd.exe /c net user Administrator /logonpasswordchg:yes",
-    #     "cmd.exe /c tzutil /s \"Eastern Standard Time\"",
-    #     "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
-    #   ]
-    # }
-    #   network_interface {}
-    #   timeout = 120
-    # }
+    customize {
+    windows_options {
+      computer_name = "WIN${random_string.vm_suffix.result}${count.index + 1}"
+      admin_password = var.winvm_admin_password
+      run_once_command_list = [
+        "cmd.exe /c powershell -Command \"Set-NetConnectionProfile -Name 'corp.microsoft.com' -NetworkCategory Private\""
+      ]
+    }
+      network_interface {}
+      timeout = 120
+    }
   }
 }

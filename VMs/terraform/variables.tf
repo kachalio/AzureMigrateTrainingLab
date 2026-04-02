@@ -152,3 +152,8 @@ variable "winvm_template_name" {
   description = "The template to clone to create the VM"
 }
 
+variable "winvm_admin_password" {
+  type        = string
+  description = "Administrator password for the Windows VM"
+  sensitive   = true
+}
